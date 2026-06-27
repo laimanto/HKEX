@@ -1,0 +1,14 @@
+lag_k,CCF,Direction
+-6,0.0294,0388 leads Feature by 6m
+-5,0.1347,0388 leads Feature by 5m
+-4,-0.0162,0388 leads Feature by 4m
+-3,-0.1339,0388 leads Feature by 3m
+-2,-0.024,0388 leads Feature by 2m
+-1,0.0109,0388 leads Feature by 1m
+0,0.2774,Contemporaneous
+1,0.0672,Feature leads 0388 by 1m
+2,-0.1245,Feature leads 0388 by 2m
+3,-0.0147,Feature leads 0388 by 3m
+4,0.0337,Feature leads 0388 by 4m
+5,0.0903,Feature leads 0388 by 5m
+6,0.0821,Feature leads 0388 by 6m

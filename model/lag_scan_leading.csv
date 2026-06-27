@@ -1,0 +1,29 @@
+Feature,Lag(m),R2,beta,p-val,Sig,N
+D_FEDFUNDS (Fed Funds change),0,0.0,-0.0037,0.9555,n.s.,136
+D_FEDFUNDS (Fed Funds change),1,0.0002,-0.00838,0.8989,n.s.,137
+D_FEDFUNDS (Fed Funds change),2,0.0334,-0.10018,0.0672,*,136
+D_FEDFUNDS (Fed Funds change),3,0.0197,-0.07686,0.2836,n.s.,135
+FEDFUNDS_level (NII predictor),0,0.0001,-0.00054,0.904,n.s.,136
+FEDFUNDS_level (NII predictor),1,0.0002,-0.00073,0.8664,n.s.,137
+FEDFUNDS_level (NII predictor),2,0.0002,-0.00069,0.8734,n.s.,136
+FEDFUNDS_level (NII predictor),3,0.0001,0.00037,0.9308,n.s.,135
+D_TIPS (real rate change),0,0.057,-0.11125,0.0022,***,137
+D_TIPS (real rate change),1,0.0365,-0.08742,0.0832,*,137
+D_TIPS (real rate change),2,0.0081,0.04116,0.4424,n.s.,136
+D_TIPS (real rate change),3,0.0,0.0008,0.9909,n.s.,135
+D_ln_VIX (fear change),0,0.089,-0.14456,0.0001,***,137
+D_ln_VIX (fear change),1,0.0002,-0.00674,0.8523,n.s.,136
+D_ln_VIX (fear change),2,0.0072,0.04127,0.255,n.s.,135
+D_ln_VIX (fear change),3,0.0137,0.05259,0.1378,n.s.,134
+ln_VIX (fear level),0,0.0052,-0.02304,0.4384,n.s.,137
+ln_VIX (fear level),1,0.0154,0.03951,0.1922,n.s.,137
+ln_VIX (fear level),2,0.0178,0.04246,0.1695,n.s.,136
+ln_VIX (fear level),3,0.0058,0.02434,0.4629,n.s.,135
+D_ln_DXY (CNH weakening),0,0.16,-2.57388,0.0,***,137
+D_ln_DXY (CNH weakening),1,0.0031,-0.35994,0.6418,n.s.,136
+D_ln_DXY (CNH weakening),2,0.0052,0.4643,0.4597,n.s.,135
+D_ln_DXY (CNH weakening),3,0.0001,0.04798,0.9228,n.s.,134
+D_ln_HSI (HSI return),0,0.6464,1.30519,0.0,***,137
+D_ln_HSI (HSI return),1,0.0005,0.03531,0.7739,n.s.,136
+D_ln_HSI (HSI return),2,0.0063,-0.12881,0.3574,n.s.,135
+D_ln_HSI (HSI return),3,0.0178,-0.19998,0.0942,*,134

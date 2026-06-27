@@ -1,0 +1,11 @@
+k,R2,beta,p-val,Sig,N,Label
+-3,0.0179,-0.3736,0.042,**,134,0388 leads Turn by 3m (direction reversed)
+-2,0.0006,-0.0682,0.7548,n.s.,135,0388 leads Turn by 2m (direction reversed)
+-1,0.0001,0.031,0.9205,n.s.,136,0388 leads Turn by 1m (direction reversed)
+0,0.077,0.0964,0.0088,***,137,Contemporaneous
+1,0.0045,0.0234,0.3194,n.s.,136,Turn leads 0388 by 1m
+2,0.0155,-0.0434,0.0957,*,135,Turn leads 0388 by 2m
+3,0.0002,-0.0047,0.8661,n.s.,134,Turn leads 0388 by 3m
+4,0.0011,0.011,0.7239,n.s.,133,Turn leads 0388 by 4m
+5,0.0082,0.0298,0.2314,n.s.,132,Turn leads 0388 by 5m
+6,0.0067,0.0263,0.3025,n.s.,131,Turn leads 0388 by 6m

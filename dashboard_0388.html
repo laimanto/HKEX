@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HKEX 0388.HK · Valuation Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f2f5;color:#1a1a2e;font-size:14px}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#1A2E4A 0%,#0d1f33 100%);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.hdr-logo{font-size:20px;font-weight:800;letter-spacing:1px}
+.hdr-logo span{color:#E8000D}
+.hdr-price .big{font-size:26px;font-weight:700}
+.hdr-price .sub{font-size:11px;opacity:.75;margin-top:2px}
+.hdr-meta{text-align:right;font-size:11px;opacity:.8;line-height:1.8}
+
+/* LAYOUT */
+.main{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px;max-width:1280px;margin:0 auto}
+@media(max-width:860px){.main{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.09);padding:16px}
+.card-title{font-size:11px;font-weight:700;letter-spacing:1.2px;color:#888;text-transform:uppercase;margin-bottom:12px;border-bottom:2px solid #f0f2f5;padding-bottom:7px}
+
+/* INPUT PANEL */
+.inputs-panel{display:flex;flex-direction:column;gap:12px}
+
+/* COLOR-CODED INPUT GROUPS */
+.input-group{background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.09);padding:13px 14px;border-left:5px solid #ddd}
+.ig-A{border-left-color:#1976D2}
+.ig-B{border-left-color:#D32F2F}
+.ig-C{border-left-color:#7B1FA2}
+.ig-D{border-left-color:#F57C00}
+
+.ig-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.ig-label{font-weight:700;font-size:12px}
+.ig-A .ig-label{color:#1976D2}
+.ig-B .ig-label{color:#D32F2F}
+.ig-C .ig-label{color:#7B1FA2}
+.ig-D .ig-label{color:#F57C00}
+
+.ig-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;color:#fff}
+.ig-A .ig-tag{background:#1976D2}
+.ig-B .ig-tag{background:#D32F2F}
+.ig-C .ig-tag{background:#7B1FA2}
+.ig-D .ig-tag{background:#F57C00}
+
+.slider-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.slider-row input[type=range]{flex:1;height:4px;cursor:pointer}
+.ig-A input[type=range]{accent-color:#1976D2}
+.ig-B input[type=range]{accent-color:#D32F2F}
+.ig-C input[type=range]{accent-color:#7B1FA2}
+.ig-D input[type=range]{accent-color:#F57C00}
+.slider-row input[type=number]{width:70px;border:1.5px solid #ddd;border-radius:5px;padding:4px 5px;font-size:13px;font-weight:700;text-align:center;color:#1A2E4A}
+.slider-row input[type=number]:focus{outline:none}
+.ig-A input[type=number]:focus{border-color:#1976D2}
+.ig-B input[type=number]:focus{border-color:#D32F2F}
+.ig-C input[type=number]:focus{border-color:#7B1FA2}
+.ig-D input[type=number]:focus{border-color:#F57C00}
+.slider-row .unit{font-size:11px;color:#888;min-width:22px}
+.slider-min,.slider-max{font-size:11px;color:#bbb;min-width:28px}
+.ig-hints{display:flex;justify-content:space-between;font-size:11px;color:#999}
+
+/* HIBOR FUTURES PANEL */
+.futures-mini{background:#f5f8ff;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px}
+.futures-mini table{width:100%;border-collapse:collapse}
+.futures-mini td{padding:2px 4px;color:#444}
+.futures-mini td:last-child{text-align:right;font-weight:700;color:#D32F2F}
+
+/* P/E STATS PANEL */
+.pe-stats{background:#fafafa;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px}
+.pe-stats-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
+.pe-stats-row.sep{border-top:1px solid #eee;margin-top:3px;padding-top:6px}
+.pe-stat-label{color:#666}
+.pe-stat-val{font-weight:700;min-width:40px;text-align:right}
+.pe-stat-val.low{color:#D32F2F}
+.pe-stat-val.mid{color:#1A2E4A;font-size:13px}
+.pe-stat-val.high{color:#2e7d32}
+.pe-stat-val.current{color:#555}
+.pe-active-note{font-size:10px;color:#1976D2;font-style:italic;margin-left:4px}
+
+/* ANALYST PANEL */
+.analyst-row{display:flex;gap:8px}
+.analyst-card{flex:1;background:#fff;border-radius:7px;padding:10px 12px;border-left:3px solid #f39c12;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.analyst-card .ac-val{font-size:17px;font-weight:800;color:#1A2E4A}
+.analyst-card .ac-label{font-size:10px;color:#999;margin-top:1px}
+
+/* RIGHT PANEL */
+.right-panel{display:flex;flex-direction:column;gap:12px}
+
+/* REVENUE TABLE */
+.rev-table{width:100%;border-collapse:collapse;font-size:13px}
+.rev-table td,.rev-table th{padding:5px 6px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.rev-table td:nth-child(2),.rev-table th:nth-child(2){text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.rev-table td:nth-child(3),.rev-table th:nth-child(3){text-align:right;font-size:11px;color:#aaa;min-width:56px;font-weight:400}
+.rev-table th{font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;border-bottom:2px solid #eee;padding-bottom:6px}
+/* Colored variable rows */
+.rev-table tr.rv-A td:first-child{border-left:3px solid #1976D2;padding-left:8px;color:#1565C0}
+.rev-table tr.rv-B td:first-child{border-left:3px solid #D32F2F;padding-left:8px;color:#B71C1C}
+.rev-table tr.rv-C td:first-child{border-left:3px solid #7B1FA2;padding-left:8px;color:#6A1B9A}
+.rev-table tr.rv-A td:nth-child(2){color:#1565C0}
+.rev-table tr.rv-B td:nth-child(2){color:#B71C1C}
+.rev-table tr.rv-C td:nth-child(2){color:#6A1B9A}
+.rev-table tr.rv-A td:nth-child(3){color:#1976D2}
+.rev-table tr.rv-B td:nth-child(3){color:#D32F2F}
+.rev-table tr.rv-C td:nth-child(3){color:#7B1FA2}
+.rev-table tr.fixed-row td{color:#aaa}
+.rev-table tr.sep td{border-top:2px solid #ddd;padding-top:7px;font-weight:700}
+.rev-table tr.opex td{color:#c0392b}
+.rev-table tr.profit td{font-weight:700;color:#27ae60;font-size:14px}
+.rev-table tr.eps-row td{font-weight:800;font-size:15px;color:#1A2E4A;border-top:2px solid #1A2E4A;padding-top:7px}
+.rev-table tr.analyst-eps td{font-size:12px;color:#666;background:#fafafa}
+.pct-pos{color:#2e7d32!important;font-weight:600!important}
+.pct-neg{color:#c0392b!important;font-weight:600!important}
+
+/* VALUATION GRID */
+.val-grid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:10px;margin-bottom:12px}
+.val-scenario{text-align:center;padding:11px 5px;border-radius:8px}
+.val-scenario.bear{background:#fff5f5;border:1.5px solid #ffcccc}
+.val-scenario.fair{background:#f0f7ff;border:2px solid #1A2E4A}
+.val-scenario.bull{background:#f0fff5;border:1.5px solid #b7e4c7}
+.val-scenario .pe-tag{font-size:10px;color:#888;font-weight:600}
+.val-scenario .val-price{font-size:21px;font-weight:800;margin:3px 0}
+.val-scenario.bear .val-price{color:#D32F2F}
+.val-scenario.fair .val-price{color:#1A2E4A}
+.val-scenario.bull .val-price{color:#2e7d32}
+.val-scenario .val-ud{font-size:11px;font-weight:600}
+
+/* RANGE BAR */
+.range-container{margin:4px 0 10px;position:relative;padding-top:50px}
+.range-label{display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-bottom:3px}
+.range-track{height:7px;background:#f0f0f0;border-radius:4px;position:relative}
+.range-fill{height:100%;background:linear-gradient(90deg,#ffd5d5,#ddeeff,#d5f5d5);border-radius:4px;position:absolute;left:0;right:0}
+.marker{position:absolute;top:-5px;width:3px;height:18px;border-radius:2px;transform:translateX(-50%)}
+.mk-current{background:#333;z-index:3}
+.mk-fair{background:#1A2E4A;z-index:2}
+.mk-target{background:#f39c12;z-index:1}
+.marker-label{position:absolute;top:22px;transform:translateX(-50%);font-size:9px;white-space:nowrap;font-weight:600;text-align:center}
+.marker-label-above{position:absolute;bottom:22px;transform:translateX(-50%);font-size:9px;white-space:nowrap;font-weight:600;text-align:center}
+
+/* STATUS BANNER */
+.status-banner{padding:9px 13px;border-radius:6px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.status-banner.underval{background:#e8f5e9;color:#1b5e20}
+.status-banner.fairval{background:#e3f2fd;color:#0d47a1}
+.status-banner.overval{background:#fce4ec;color:#880e4f}
+
+/* REV BADGE (colored square, matches sidebar labels) */
+.rev-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;font-size:10px;font-weight:800;color:#fff;margin-right:5px;vertical-align:middle;flex-shrink:0}
+.rev-badge.bA{background:#1976D2}
+.rev-badge.bB{background:#D32F2F}
+.rev-badge.bC{background:#7B1FA2}
+
+/* CHART SECTION */
+#mainChart{max-height:280px}
+.chart-section{max-width:1280px;margin:0 auto 18px;padding:0 14px}
+.chart-tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.chart-tab{padding:6px 14px;border-radius:5px;border:1.5px solid #ddd;background:#fff;cursor:pointer;font-size:12px;font-weight:600;color:#777;transition:all .15s}
+.chart-tab:hover{border-color:#1A2E4A;color:#1A2E4A}
+.chart-tab.active{background:#1A2E4A;color:#fff;border-color:#1A2E4A}
+.chart-tab.t-A{border-left:3px solid #1976D2}
+.chart-tab.t-B{border-left:3px solid #D32F2F}
+.chart-tab.t-C{border-left:3px solid #7B1FA2}
+.chart-tab.t-D{border-left:3px solid #F57C00}
+.chart-tab.active.t-A,.chart-tab.active.t-B,.chart-tab.active.t-C,.chart-tab.active.t-D{border-left-width:3px}
+.chart-wrapper{background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.09);padding:16px}
+.chart-desc{font-size:11px;color:#aaa;margin-top:5px;text-align:center}
+
+/* MODEL NOTES */
+.model-note{font-size:12px;color:#666;line-height:1.7}
+.footer{text-align:center;font-size:11px;color:#bbb;padding:10px;max-width:1280px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">HKEX <span>0388.HK</span> &nbsp; Valuation Dashboard</div>
+  <div class="hdr-price">
+    <div class="big">HKD 362</div>
+    <div class="sub">Latest close: 2026-06-01</div>
+  </div>
+  <div class="hdr-meta">
+    <div>17 analysts &nbsp;|&nbsp; Target: <strong>HKD 518</strong> (400–610)</div>
+    <div>TTM EPS: <strong>HKD 14.89</strong> &nbsp;|&nbsp; Fwd EPS: <strong>HKD 15.63</strong> &nbsp;|&nbsp; TTM P/E: <strong>24.3x</strong></div>
+    <div style="color:#aaa;font-size:10px">Model: Rev – Fixed OpEx (HKD 9bn) = Net Profit ÷ 1,267mn shares = EPS × P/E = Price</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: INPUTS -->
+  <div class="inputs-panel">
+
+    <!-- A: ADT -->
+    <div class="input-group ig-A">
+      <div class="ig-header">
+        <span class="ig-label">&#x24B6; Average Daily Turnover — ADT (HKD bn/day)</span>
+        <span class="ig-tag">A</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-min">50</span>
+        <input type="range" id="sl-adt" min="50" max="500" step="5" value="275" oninput="syncNum('adt')">
+        <span class="slider-max">500</span>
+        <input type="number" id="in-adt" value="275" min="50" max="500" step="5" oninput="syncSlider('adt')">
+        <span class="unit">bn</span>
+      </div>
+      <div class="ig-hints">
+        <span>2024A: ~120bn &nbsp;|&nbsp; 2025A: ~250bn</span>
+        <span>2026E: <strong>275bn</strong></span>
+      </div>
+    </div>
+
+    <!-- B: HIBOR -->
+    <div class="input-group ig-B">
+      <div class="ig-header">
+        <span class="ig-label">&#x24B7; HIBOR / Avg Funding Rate (%)</span>
+        <span class="ig-tag">B</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-min">0.5</span>
+        <input type="range" id="sl-hibor" min="0.5" max="8" step="0.1" value="3.5" oninput="syncNum('hibor')">
+        <span class="slider-max">8%</span>
+        <input type="number" id="in-hibor" value="3.5" min="0.5" max="8" step="0.1" oninput="syncSlider('hibor')">
+        <span class="unit">%</span>
+      </div>
+      <div class="ig-hints">
+        <span>Futures consensus: ~3.4% full-yr avg</span>
+        <span>Peak 2023: ~5.7%</span>
+      </div>
+      <div class="futures-mini">
+        <div style="font-weight:700;margin-bottom:4px;color:#1A2E4A">Live ZQ Fed Funds Futures</div>
+        <table>
+          <tr style="color:#999"><td>Contract</td><td>Fed Funds</td><td style="text-align:right">Est. HIBOR</td></tr>
+          <tr><td>Jul 2026</td><td>3.64%</td><td>3.24%</td></tr><tr><td>Sep 2026</td><td>3.75%</td><td>3.35%</td></tr><tr><td>Dec 2026</td><td>3.93%</td><td>3.53%</td></tr>
+        </table>
+        <div style="margin-top:4px;color:#777;font-size:10px">HIBOR ≈ FF −40bps. Futures imply rates hold/rise in 2H 2026.</div>
+      </div>
+    </div>
+
+    <!-- C: IPO -->
+    <div class="input-group ig-C">
+      <div class="ig-header">
+        <span class="ig-label">&#x24B8; IPO Proceeds (HKD bn / year)</span>
+        <span class="ig-tag">C</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-min">0</span>
+        <input type="range" id="sl-ipo" min="0" max="500" step="10" value="120" oninput="syncNum('ipo')">
+        <span class="slider-max">500</span>
+        <input type="number" id="in-ipo" value="120" min="0" max="500" step="10" oninput="syncSlider('ipo')">
+        <span class="unit">bn</span>
+      </div>
+      <div class="ig-hints">
+        <span>2023A: 46bn &nbsp;|&nbsp; 2024A: 87bn &nbsp;|&nbsp; 2025A: ~80bn</span>
+        <span>Peak 2010: 449bn</span>
+      </div>
+    </div>
+
+    <!-- D: P/E -->
+    <div class="input-group ig-D">
+      <div class="ig-header">
+        <span class="ig-label">&#x24B9; P/E Multiple (x) — sets Fair case</span>
+        <span class="ig-tag">D</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-min">15</span>
+        <input type="range" id="sl-pe" min="15" max="55" step="0.5" value="27.0" oninput="syncNum('pe')">
+        <span class="slider-max">55</span>
+        <input type="number" id="in-pe" value="27.0" min="15" max="55" step="0.5" oninput="syncSlider('pe')">
+        <span class="unit">x</span>
+      </div>
+      <div class="pe-stats">
+        <div class="pe-stats-row">
+          <span class="pe-stat-label">Current TTM P/E</span>
+          <span class="pe-stat-val current">24.3x</span>
+        </div>
+        <div class="pe-stats-row sep">
+          <span class="pe-stat-label">Bear: Historical Low (25th pct)</span>
+          <span class="pe-stat-val low">24.5x</span>
+        </div>
+        <div class="pe-stats-row">
+          <span class="pe-stat-label">Median (2015+) <span class="pe-active-note">← model default</span></span>
+          <span class="pe-stat-val mid">27.3x</span>
+        </div>
+        <div class="pe-stats-row">
+          <span class="pe-stat-label">Bull: Historical High (75th+)</span>
+          <span class="pe-stat-val high">35.0x</span>
+        </div>
+        <div class="pe-stats-row" style="margin-top:4px;border-top:1px solid #eee;padding-top:5px">
+          <span class="pe-stat-label">Analyst implied fwd P/E</span>
+          <span class="pe-stat-val" style="color:#f39c12">33.2x</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analyst Summary -->
+    <div class="card">
+      <div class="card-title">Analyst Consensus &nbsp;<span style="font-weight:400;color:#bbb">(17 analysts)</span></div>
+      <div class="analyst-row">
+        <div class="analyst-card" style="border-color:#D32F2F">
+          <div class="ac-val" style="color:#D32F2F">HKD 400</div>
+          <div class="ac-label">Low Target</div>
+        </div>
+        <div class="analyst-card">
+          <div class="ac-val">HKD 518</div>
+          <div class="ac-label">Mean Target (+43%)</div>
+        </div>
+        <div class="analyst-card" style="border-color:#2e7d32">
+          <div class="ac-val" style="color:#2e7d32">HKD 610</div>
+          <div class="ac-label">High Target</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: REVENUE + VALUATION -->
+  <div class="right-panel">
+
+    <!-- Revenue Model -->
+    <div class="card">
+      <div class="card-title">Revenue Model &nbsp;<span style="font-weight:400;color:#aaa">2026E (HKD mn) — live calculation</span></div>
+      <table class="rev-table">
+        <tr><th>Line Item</th><th>HKD mn</th><th>%</th></tr>
+        <tr class="rv-A">
+          <td><span class="rev-badge bA">A</span>Trading + Clearing &nbsp;<span style="font-size:10px;color:#aaa">(ADT × ~250 days × blended fee)</span></td>
+          <td id="rv-trading">--</td>
+          <td id="rv-trading-pct">--</td>
+        </tr>
+        <tr class="rv-B">
+          <td><span class="rev-badge bB">B</span>Investment NII &nbsp;<span style="font-size:10px;color:#aaa">(HIBOR × HKD 270bn clearing pool)</span></td>
+          <td id="rv-nii">--</td>
+          <td id="rv-nii-pct">--</td>
+        </tr>
+        <tr class="rv-C">
+          <td><span class="rev-badge bC">C</span>Listing / IPO Fees &nbsp;<span style="font-size:10px;color:#aaa">(620 fixed + 0.8% of IPO proceeds)</span></td>
+          <td id="rv-listing">--</td>
+          <td id="rv-listing-pct">--</td>
+        </tr>
+        <tr class="fixed-row">
+          <td>&nbsp;&nbsp;&nbsp; Market Data + Connectivity</td>
+          <td>1,050</td>
+          <td id="rv-data-pct">--</td>
+        </tr>
+        <tr class="fixed-row">
+          <td>&nbsp;&nbsp;&nbsp; Other (LME, Depository)</td>
+          <td>1,100</td>
+          <td id="rv-other-pct">--</td>
+        </tr>
+        <tr class="sep">
+          <td>Total Revenue</td>
+          <td id="rv-total">--</td>
+          <td style="color:#bbb">100%</td>
+        </tr>
+        <tr class="opex">
+          <td>Operating Expenses &nbsp;<span style="font-size:10px">(staff, IT, LME — approx. fixed)</span></td>
+          <td>(9,000)</td>
+          <td id="rv-opex-pct">--</td>
+        </tr>
+        <tr class="profit">
+          <td>Net Profit</td>
+          <td id="rv-profit">--</td>
+          <td id="rv-margin" style="color:#27ae60;font-size:12px">--</td>
+        </tr>
+        <tr class="eps-row">
+          <td>EPS — Model &nbsp;<span style="font-size:11px;font-weight:400;color:#888">(1,267mn shares)</span></td>
+          <td id="rv-eps">--</td>
+          <td id="rv-eps-pct" style="font-size:11px;white-space:nowrap">--</td>
+        </tr>
+        <tr class="analyst-eps">
+          <td>&nbsp;&nbsp;EPS — Analyst Fwd &nbsp;<span style="font-size:10px;color:#bbb">(17 analysts)</span></td>
+          <td style="color:#f39c12;font-weight:700">HKD 15.63</td>
+          <td style="color:#bbb;font-size:10px">consensus</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Valuation Output -->
+    <div class="card">
+      <div class="card-title">Valuation &nbsp;<span id="val-subtitle" style="font-weight:400;color:#aaa">EPS × P/E Band</span></div>
+      <div class="val-grid">
+        <div class="val-scenario bear">
+          <div class="pe-tag">BEAR &nbsp;P/E 24x</div>
+          <div class="val-price" id="v-low">--</div>
+          <div class="val-ud" id="v-low-ud" style="color:#D32F2F"></div>
+        </div>
+        <div class="val-scenario fair">
+          <div class="pe-tag">FAIR &nbsp;P/E <span id="pe-label-mid">--</span>x</div>
+          <div class="val-price" id="v-fair">--</div>
+          <div class="val-ud" id="v-fair-ud" style="color:#1A2E4A"></div>
+        </div>
+        <div class="val-scenario bull">
+          <div class="pe-tag">BULL &nbsp;P/E 35x</div>
+          <div class="val-price" id="v-high">--</div>
+          <div class="val-ud" id="v-high-ud" style="color:#2e7d32"></div>
+        </div>
+      </div>
+
+      <div class="range-container">
+        <div class="range-label">
+          <span id="rng-lo">--</span>
+          <span>← Valuation Range →</span>
+          <span id="rng-hi">--</span>
+        </div>
+        <div class="range-track" id="range-track">
+          <div class="range-fill"></div>
+          <div class="marker mk-current" id="mk-current" style="left:40%">
+            <div class="marker-label-above" style="color:#333">▲ Now<br>HKD 362</div>
+          </div>
+          <div class="marker mk-fair" id="mk-fair" style="left:55%">
+            <div class="marker-label" style="color:#1A2E4A">● Fair</div>
+          </div>
+          <div class="marker mk-target" id="mk-target" style="left:75%">
+            <div class="marker-label-above" style="color:#f39c12;bottom:44px">◆ Analyst<br>HKD 518</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-banner fairval" id="status-banner">
+        <span id="status-text">Calculating…</span>
+        <span id="status-updown"></span>
+      </div>
+    </div>
+
+    <!-- Model Notes -->
+    <div class="card">
+      <div class="card-title">Model Notes</div>
+      <div class="model-note">
+        <p><strong>Range logic:</strong> Low / Fair / High use the <em>same model EPS</em> from inputs A–C, multiplied by historical P/E trough (24x), user-selected P/E, and peak (35x). Revenue risk is captured by moving sliders; the range purely reflects market re-rating risk.</p>
+        <p style="margin-top:8px"><strong>ADT surge 2025:</strong> 250bn/day vs 120bn in 2024 reflects the China stimulus + AI rally. TRADING_K recalibrated to 47.2 (= 11,800mn ÷ 250bn) vs 88 in earlier years — fee mix shifted.</p>
+        <p style="margin-top:8px"><strong>Fixed OpEx ~HKD 9bn/year</strong> (staff, IT, LME). All incremental NII and trading revenue flow almost entirely to EPS — this is why net margin rose from 54% (2022) to ~71% (2025) as volumes and rates surged.</p>
+        <p style="margin-top:8px;font-size:11px;color:#bbb">Generated: 2026-06-26 22:47 · yfinance, FRED, HKEX annual reports</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CHART SECTION -->
+<div class="chart-section">
+  <div class="chart-tabs">
+    <button class="chart-tab active" id="tab-price" onclick="showChart('price',this)">&#x1F4C8; HKEX Price</button>
+    <button class="chart-tab t-A" id="tab-adt"   onclick="showChart('adt',this)">&#x24B6; ADT</button>
+    <button class="chart-tab t-B" id="tab-hibor" onclick="showChart('hibor',this)">&#x24B7; HIBOR</button>
+    <button class="chart-tab t-C" id="tab-ipo"   onclick="showChart('ipo',this)">&#x24B8; IPO Proceeds</button>
+    <button class="chart-tab t-D" id="tab-pe"    onclick="showChart('pe',this)">&#x24B9; P/E History</button>
+  </div>
+  <div class="chart-wrapper">
+    <canvas id="mainChart" height="270"></canvas>
+    <div class="chart-desc" id="chart-desc"></div>
+  </div>
+</div>
+
+<div class="footer">
+  HKEX (0388.HK) Valuation Dashboard · For reference only, not investment advice ·
+  Data: yfinance, FRED, HKEX annual reports · 2026 figures are estimates
+</div>
+
+<script>
+const D = {"meta":{"generated":"2026-06-26 22:47","current_price":362.2,"current_date":"2026-06-01","ttm_eps":14.89,"fwd_eps":15.62897,"analyst_target_mean":518.4706,"analyst_target_high":610.0,"analyst_target_low":400.0,"analyst_n":17,"trailing_pe_live":24.32505,"consensus_hibor":3.38},"model_constants":{"TRADING_K":47.2,"NII_K":2700,"IPO_BASE":620,"IPO_K":8.0,"DATA_REV":1050,"OTHER_REV":1100,"OPEX":9000,"SHARES_MN":1267,"PE_LOW":24.5,"PE_MEDIAN":27.3,"PE_HIGH":35.0},"prefill":{"adt":275.0,"hibor":3.5,"ipo":120.0,"pe":27.0},"futures":{"Jul 2026":{"ff":3.64,"hibor":3.24},"Sep 2026":{"ff":3.75,"hibor":3.35},"Dec 2026":{"ff":3.93,"hibor":3.53}},"series":{"price":{"dates":["2000-06-01","2000-07-01","2000-08-01","2000-09-01","2000-10-01","2000-11-01","2000-12-01","2001-01-01","2001-02-01","2001-03-01","2001-04-01","2001-05-01","2001-06-01","2001-07-01","2001-08-01","2001-09-01","2001-10-01","2001-11-01","2001-12-01","2002-01-01","2002-02-01","2002-03-01","2002-04-01","2002-05-01","2002-06-01","2002-07-01","2002-08-01","2002-09-01","2002-10-01","2002-11-01","2002-12-01","2003-01-01","2003-02-01","2003-03-01","2003-04-01","2003-05-01","2003-06-01","2003-07-01","2003-08-01","2003-09-01","2003-10-01","2003-11-01","2003-12-01","2004-01-01","2004-02-01","2004-03-01","2004-04-01","2004-05-01","2004-06-01","2004-07-01","2004-08-01","2004-09-01","2004-10-01","2004-11-01","2004-12-01","2005-01-01","2005-02-01","2005-03-01","2005-04-01","2005-05-01","2005-06-01","2005-07-01","2005-08-01","2005-09-01","2005-10-01","2005-11-01","2005-12-01","2006-01-01","2006-02-01","2006-03-01","2006-04-01","2006-05-01","2006-06-01","2006-07-01","2006-08-01","2006-09-01","2006-10-01","2006-11-01","2006-12-01","2007-01-01","2007-02-01","2007-03-01","2007-04-01","2007-05-01","2007-06-01","2007-07-01","2007-08-01","2007-09-01","2007-10-01","2007-11-01","2007-12-01","2008-01-01","2008-02-01","2008-03-01","2008-04-01","2008-05-01","2008-06-01","2008-07-01","2008-08-01","2008-09-01","2008-10-01","2008-11-01","2008-12-01","2009-01-01","2009-02-01","2009-03-01","2009-04-01","2009-05-01","2009-06-01","2009-07-01","2009-08-01","2009-09-01","2009-10-01","2009-11-01","2009-12-01","2010-01-01","2010-02-01","2010-03-01","2010-04-01","2010-05-01","2010-06-01","2010-07-01","2010-08-01","2010-09-01","2010-10-01","2010-11-01","2010-12-01","2011-01-01","2011-02-01","2011-03-01","2011-04-01","2011-05-01","2011-06-01","2011-07-01","2011-08-01","2011-09-01","2011-10-01","2011-11-01","2011-12-01","2012-01-01","2012-02-01","2012-03-01","2012-04-01","2012-05-01","2012-06-01","2012-07-01","2012-08-01","2012-09-01","2012-10-01","2012-11-01","2012-12-01","2013-01-01","2013-02-01","2013-03-01","2013-04-01","2013-05-01","2013-06-01","2013-07-01","2013-08-01","2013-09-01","2013-10-01","2013-11-01","2013-12-01","2014-01-01","2014-02-01","2014-03-01","2014-04-01","2014-05-01","2014-06-01","2014-07-01","2014-08-01","2014-09-01","2014-10-01","2014-11-01","2014-12-01","2015-01-01","2015-02-01","2015-03-01","2015-04-01","2015-05-01","2015-06-01","2015-07-01","2015-08-01","2015-09-01","2015-10-01","2015-11-01","2015-12-01","2016-01-01","2016-02-01","2016-03-01","2016-04-01","2016-05-01","2016-06-01","2016-07-01","2016-08-01","2016-09-01","2016-10-01","2016-11-01","2016-12-01","2017-01-01","2017-02-01","2017-03-01","2017-04-01","2017-05-01","2017-06-01","2017-07-01","2017-08-01","2017-09-01","2017-10-01","2017-11-01","2017-12-01","2018-01-01","2018-02-01","2018-03-01","2018-04-01","2018-05-01","2018-06-01","2018-07-01","2018-08-01","2018-09-01","2018-10-01","2018-11-01","2018-12-01","2019-01-01","2019-02-01","2019-03-01","2019-04-01","2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01","2019-12-01","2020-01-01","2020-02-01","2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01","2020-11-01","2020-12-01","2021-01-01","2021-02-01","2021-03-01","2021-04-01","2021-05-01","2021-06-01","2021-07-01","2021-08-01","2021-09-01","2021-10-01","2021-11-01","2021-12-01","2022-01-01","2022-02-01","2022-03-01","2022-04-01","2022-05-01","2022-06-01","2022-07-01","2022-08-01","2022-09-01","2022-10-01","2022-11-01","2022-12-01","2023-01-01","2023-02-01","2023-03-01","2023-04-01","2023-05-01","2023-06-01","2023-07-01","2023-08-01","2023-09-01","2023-10-01","2023-11-01","2023-12-01","2024-01-01","2024-02-01","2024-03-01","2024-04-01","2024-05-01","2024-06-01","2024-07-01","2024-08-01","2024-09-01","2024-10-01","2024-11-01","2024-12-01","2025-01-01","2025-02-01","2025-03-01","2025-04-01","2025-05-01","2025-06-01","2025-07-01","2025-08-01","2025-09-01","2025-10-01","2025-11-01","2025-12-01","2026-01-01","2026-02-01","2026-03-01","2026-04-01","2026-05-01","2026-06-01"],"values":[4.4,6.9,6.8,6.6,5.7,6.9,7.5,8.0,6.9,5.3,6.0,6.1,6.0,5.0,4.2,4.0,4.5,4.8,5.1,4.9,4.8,5.2,6.2,6.2,5.7,5.0,4.6,4.2,4.6,4.7,4.4,4.1,4.1,3.7,4.2,4.8,5.3,5.9,6.6,7.8,8.0,7.5,7.9,9.2,9.7,8.8,8.2,8.5,8.5,8.5,9.0,9.6,9.6,10.6,11.3,10.5,10.7,10.9,10.5,10.5,11.1,13.4,13.2,15.0,14.6,15.9,18.1,21.4,22.5,26.4,31.9,29.8,28.5,28.8,30.2,33.1,35.7,39.8,49.7,49.1,46.7,44.1,44.4,51.3,65.2,76.7,84.5,142.0,152.7,140.5,131.7,96.0,90.4,79.7,97.6,81.9,69.5,71.1,63.9,58.3,47.4,38.2,46.1,42.6,39.2,45.8,57.8,76.4,77.1,93.4,87.4,90.9,90.5,89.4,90.2,85.6,84.1,83.9,84.9,78.6,80.5,83.9,81.3,101.9,113.8,118.7,117.6,119.3,112.4,112.7,119.7,117.8,110.2,108.7,100.0,78.6,91.9,83.9,85.1,92.3,99.1,89.5,86.5,76.4,76.7,72.6,73.0,83.1,90.7,87.8,93.5,104.3,98.9,93.7,93.6,93.8,84.0,86.4,86.6,90.4,91.0,99.0,94.1,88.7,87.6,85.6,102.9,106.3,106.4,127.8,132.5,124.3,127.9,125.6,127.7,132.8,133.1,141.3,220.6,223.6,205.0,157.5,138.9,134.8,155.4,154.0,151.3,129.8,128.8,142.4,149.7,143.9,145.1,148.2,148.5,159.5,160.8,159.7,143.4,147.7,150.8,153.1,151.6,155.6,159.6,176.2,171.1,168.2,173.9,188.4,192.0,237.4,227.4,204.4,208.3,205.6,191.1,187.6,183.9,184.4,171.2,187.7,186.6,200.9,222.8,227.8,226.5,207.7,229.6,221.2,202.9,194.4,207.1,209.0,213.9,218.8,216.3,200.0,215.6,231.2,282.3,316.7,334.7,312.5,319.8,332.9,371.4,429.7,408.7,399.0,410.0,423.8,403.7,432.7,432.3,422.6,414.7,378.7,401.1,387.5,332.6,331.2,301.2,302.5,344.2,320.1,286.5,243.0,188.4,275.8,304.0,317.7,283.6,317.3,295.3,261.2,269.0,296.9,281.3,270.8,254.5,256.5,248.0,218.9,224.7,214.2,236.5,247.1,235.2,217.9,226.0,312.4,297.7,277.6,282.7,290.2,335.2,334.9,331.0,384.5,406.8,414.8,438.1,435.1,417.0,404.6,401.4,425.4,412.4,388.6,412.4,399.8,362.2],"label":"0388.HK Close (HKD)","unit":"HKD"},"hibor":{"dates":["2000-01-01","2000-02-01","2000-03-01","2000-04-01","2000-05-01","2000-06-01","2000-07-01","2000-08-01","2000-09-01","2000-10-01","2000-11-01","2000-12-01","2001-01-01","2001-02-01","2001-03-01","2001-04-01","2001-05-01","2001-06-01","2001-07-01","2001-08-01","2001-09-01","2001-10-01","2001-11-01","2001-12-01","2002-01-01","2002-02-01","2002-03-01","2002-04-01","2002-05-01","2002-06-01","2002-07-01","2002-08-01","2002-09-01","2002-10-01","2002-11-01","2002-12-01","2003-01-01","2003-02-01","2003-03-01","2003-04-01","2003-05-01","2003-06-01","2003-07-01","2003-08-01","2003-09-01","2003-10-01","2003-11-01","2003-12-01","2004-01-01","2004-02-01","2004-03-01","2004-04-01","2004-05-01","2004-06-01","2004-07-01","2004-08-01","2004-09-01","2004-10-01","2004-11-01","2004-12-01","2005-01-01","2005-02-01","2005-03-01","2005-04-01","2005-05-01","2005-06-01","2005-07-01","2005-08-01","2005-09-01","2005-10-01","2005-11-01","2005-12-01","2006-01-01","2006-02-01","2006-03-01","2006-04-01","2006-05-01","2006-06-01","2006-07-01","2006-08-01","2006-09-01","2006-10-01","2006-11-01","2006-12-01","2007-01-01","2007-02-01","2007-03-01","2007-04-01","2007-05-01","2007-06-01","2007-07-01","2007-08-01","2007-09-01","2007-10-01","2007-11-01","2007-12-01","2008-01-01","2008-02-01","2008-03-01","2008-04-01","2008-05-01","2008-06-01","2008-07-01","2008-08-01","2008-09-01","2008-10-01","2008-11-01","2008-12-01","2009-01-01","2009-02-01","2009-03-01","2009-04-01","2009-05-01","2009-06-01","2009-07-01","2009-08-01","2009-09-01","2009-10-01","2009-11-01","2009-12-01","2010-01-01","2010-02-01","2010-03-01","2010-04-01","2010-05-01","2010-06-01","2010-07-01","2010-08-01","2010-09-01","2010-10-01","2010-11-01","2010-12-01","2011-01-01","2011-02-01","2011-03-01","2011-04-01","2011-05-01","2011-06-01","2011-07-01","2011-08-01","2011-09-01","2011-10-01","2011-11-01","2011-12-01","2012-01-01","2012-02-01","2012-03-01","2012-04-01","2012-05-01","2012-06-01","2012-07-01","2012-08-01","2012-09-01","2012-10-01","2012-11-01","2012-12-01","2013-01-01","2013-02-01","2013-03-01","2013-04-01","2013-05-01","2013-06-01","2013-07-01","2013-08-01","2013-09-01","2013-10-01","2013-11-01","2013-12-01","2014-01-01","2014-02-01","2014-03-01","2014-04-01","2014-05-01","2014-06-01","2014-07-01","2014-08-01","2014-09-01","2014-10-01","2014-11-01","2014-12-01","2015-01-01","2015-02-01","2015-03-01","2015-04-01","2015-05-01","2015-06-01","2015-07-01","2015-08-01","2015-09-01","2015-10-01","2015-11-01","2015-12-01","2016-01-01","2016-02-01","2016-03-01","2016-04-01","2016-05-01","2016-06-01","2016-07-01","2016-08-01","2016-09-01","2016-10-01","2016-11-01","2016-12-01","2017-01-01","2017-02-01","2017-03-01","2017-04-01","2017-05-01","2017-06-01","2017-07-01","2017-08-01","2017-09-01","2017-10-01","2017-11-01","2017-12-01","2018-01-01","2018-02-01","2018-03-01","2018-04-01","2018-05-01","2018-06-01","2018-07-01","2018-08-01","2018-09-01","2018-10-01","2018-11-01","2018-12-01","2019-01-01","2019-02-01","2019-03-01","2019-04-01","2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01","2019-12-01","2020-01-01","2020-02-01","2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01","2020-11-01","2020-12-01","2021-01-01","2021-02-01","2021-03-01","2021-04-01","2021-05-01","2021-06-01","2021-07-01","2021-08-01","2021-09-01","2021-10-01","2021-11-01","2021-12-01","2022-01-01","2022-02-01","2022-03-01","2022-04-01","2022-05-01","2022-06-01","2022-07-01","2022-08-01","2022-09-01","2022-10-01","2022-11-01","2022-12-01","2023-01-01","2023-02-01","2023-03-01","2023-04-01","2023-05-01","2023-06-01","2023-07-01","2023-08-01","2023-09-01","2023-10-01","2023-11-01","2023-12-01","2024-01-01","2024-02-01","2024-03-01","2024-04-01","2024-05-01","2024-06-01","2024-07-01","2024-08-01","2024-09-01","2024-10-01","2024-11-01","2024-12-01","2025-01-01","2025-02-01","2025-03-01","2025-04-01","2025-05-01","2025-06-01","2025-07-01","2025-08-01","2025-09-01","2025-10-01","2025-11-01","2025-12-01","2026-01-01","2026-02-01","2026-03-01","2026-04-01","2026-05-01"],"values":[5.05,5.33,5.45,5.62,5.87,6.13,6.14,6.1,6.12,6.11,6.11,6.0,5.58,5.09,4.91,4.4,3.81,3.57,3.37,3.25,2.67,2.09,1.69,1.42,1.33,1.34,1.33,1.35,1.35,1.35,1.33,1.34,1.35,1.35,0.94,0.84,0.84,0.86,0.85,0.86,0.86,0.82,0.61,0.63,0.61,0.61,0.6,0.58,0.6,0.61,0.6,0.6,0.6,0.63,0.86,1.03,1.21,1.36,1.53,1.76,1.88,2.1,2.23,2.39,2.6,2.64,2.86,3.1,3.22,3.38,3.6,3.76,3.89,4.09,4.19,4.39,4.54,4.59,4.84,4.85,4.85,4.85,4.85,4.84,4.85,4.86,4.86,4.85,4.85,4.85,4.86,4.62,4.54,4.36,4.09,3.84,3.54,2.58,2.21,1.88,1.58,1.6,1.61,1.6,1.41,0.57,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.01,0.14,0.25,0.26,0.39,0.5,0.51,0.64,0.75,0.76,0.75,0.75,0.76,0.9,1.01,1.02,1.11,1.29,1.3,1.42,1.51,1.51,1.55,1.79,1.8,1.87,2.0,2.0,2.01,2.02,1.99,1.98,2.0,1.73,1.64,1.43,1.15,1.15,1.15,1.18,0.25,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.37,0.81,1.28,1.93,2.16,2.68,3.38,3.7,3.93,4.17,4.25,4.43,4.66,4.68,4.72,4.93,4.93,4.93,4.93,4.93,4.93,4.93,4.93,4.93,4.93,4.93,4.93,4.93,4.73,4.43,4.24,4.08,3.93,3.93,3.93,3.93,3.93,3.93,3.93,3.93,3.82,3.69,3.48,3.32,3.24,3.24,3.24,3.24,3.23],"label":"3M HIBOR (%)","unit":"%"},"adt":{"dates":["2000-01-01","2000-02-01","2000-03-01","2000-04-01","2000-05-01","2000-06-01","2000-07-01","2000-08-01","2000-09-01","2000-10-01","2000-11-01","2000-12-01","2001-01-01","2001-02-01","2001-03-01","2001-04-01","2001-05-01","2001-06-01","2001-07-01","2001-08-01","2001-09-01","2001-10-01","2001-11-01","2001-12-01","2002-01-01","2002-02-01","2002-03-01","2002-04-01","2002-05-01","2002-06-01","2002-07-01","2002-08-01","2002-09-01","2002-10-01","2002-11-01","2002-12-01","2003-01-01","2003-02-01","2003-03-01","2003-04-01","2003-05-01","2003-06-01","2003-07-01","2003-08-01","2003-09-01","2003-10-01","2003-11-01","2003-12-01","2004-01-01","2004-02-01","2004-03-01","2004-04-01","2004-05-01","2004-06-01","2004-07-01","2004-08-01","2004-09-01","2004-10-01","2004-11-01","2004-12-01","2005-01-01","2005-02-01","2005-03-01","2005-04-01","2005-05-01","2005-06-01","2005-07-01","2005-08-01","2005-09-01","2005-10-01","2005-11-01","2005-12-01","2006-01-01","2006-02-01","2006-03-01","2006-04-01","2006-05-01","2006-06-01","2006-07-01","2006-08-01","2006-09-01","2006-10-01","2006-11-01","2006-12-01","2007-01-01","2007-02-01","2007-03-01","2007-04-01","2007-05-01","2007-06-01","2007-07-01","2007-08-01","2007-09-01","2007-10-01","2007-11-01","2007-12-01","2008-01-01","2008-02-01","2008-03-01","2008-04-01","2008-05-01","2008-06-01","2008-07-01","2008-08-01","2008-09-01","2008-10-01","2008-11-01","2008-12-01","2009-01-01","2009-02-01","2009-03-01","2009-04-01","2009-05-01","2009-06-01","2009-07-01","2009-08-01","2009-09-01","2009-10-01","2009-11-01","2009-12-01","2010-01-01","2010-02-01","2010-03-01","2010-04-01","2010-05-01","2010-06-01","2010-07-01","2010-08-01","2010-09-01","2010-10-01","2010-11-01","2010-12-01","2011-01-01","2011-02-01","2011-03-01","2011-04-01","2011-05-01","2011-06-01","2011-07-01","2011-08-01","2011-09-01","2011-10-01","2011-11-01","2011-12-01","2012-01-01","2012-02-01","2012-03-01","2012-04-01","2012-05-01","2012-06-01","2012-07-01","2012-08-01","2012-09-01","2012-10-01","2012-11-01","2012-12-01","2013-01-01","2013-02-01","2013-03-01","2013-04-01","2013-05-01","2013-06-01","2013-07-01","2013-08-01","2013-09-01","2013-10-01","2013-11-01","2013-12-01","2014-01-01","2014-02-01","2014-03-01","2014-04-01","2014-05-01","2014-06-01","2014-07-01","2014-08-01","2014-09-01","2014-10-01","2014-11-01","2014-12-01","2015-01-01","2015-02-01","2015-03-01","2015-04-01","2015-05-01","2015-06-01","2015-07-01","2015-08-01","2015-09-01","2015-10-01","2015-11-01","2015-12-01","2016-01-01","2016-02-01","2016-03-01","2016-04-01","2016-05-01","2016-06-01","2016-07-01","2016-08-01","2016-09-01","2016-10-01","2016-11-01","2016-12-01","2017-01-01","2017-02-01","2017-03-01","2017-04-01","2017-05-01","2017-06-01","2017-07-01","2017-08-01","2017-09-01","2017-10-01","2017-11-01","2017-12-01","2018-01-01","2018-02-01","2018-03-01","2018-04-01","2018-05-01","2018-06-01","2018-07-01","2018-08-01","2018-09-01","2018-10-01","2018-11-01","2018-12-01","2019-01-01","2019-02-01","2019-03-01","2019-04-01","2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01","2019-12-01","2020-01-01","2020-02-01","2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01","2020-11-01","2020-12-01","2021-01-01","2021-02-01","2021-03-01","2021-04-01","2021-05-01","2021-06-01","2021-07-01","2021-08-01","2021-09-01","2021-10-01","2021-11-01","2021-12-01","2022-01-01","2022-02-01","2022-03-01","2022-04-01","2022-05-01","2022-06-01","2022-07-01","2022-08-01","2022-09-01","2022-10-01","2022-11-01","2022-12-01","2023-01-01","2023-02-01","2023-03-01","2023-04-01","2023-05-01","2023-06-01","2023-07-01","2023-08-01","2023-09-01","2023-10-01","2023-11-01","2023-12-01","2024-01-01","2024-02-01","2024-03-01","2024-04-01","2024-05-01","2024-06-01","2024-07-01","2024-08-01","2024-09-01","2024-10-01","2024-11-01","2024-12-01","2025-01-01","2025-02-01","2025-03-01","2025-04-01","2025-05-01","2025-06-01","2025-07-01","2025-08-01","2025-09-01","2025-10-01","2025-11-01","2025-12-01","2026-01-01","2026-02-01","2026-03-01","2026-04-01","2026-05-01","2026-06-01"],"values":[55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,55.0,44.0,44.0,44.0,44.0,44.0,44.0,44.0,44.0,44.0,44.0,44.0,44.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,54.0,54.0,54.0,54.0,54.0,54.0,54.0,54.0,54.0,54.0,54.0,54.0,57.0,57.0,57.0,57.0,57.0,57.0,57.0,57.0,57.0,57.0,57.0,57.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,68.0,68.0,68.0,68.0,68.0,68.0,68.0,68.0,68.0,68.0,68.0,68.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,103.0,103.0,103.0,103.0,103.0,103.0,103.0,103.0,103.0,103.0,103.0,103.0,88.0,88.0,88.0,88.0,88.0,88.0,88.0,88.0,88.0,88.0,88.0,88.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,107.0,167.0,167.0,167.0,167.0,167.0,167.0,167.0,167.0,167.0,167.0,167.0,167.0,105.0,105.0,105.0,105.0,105.0,105.0,105.0,105.0,105.0,105.0,105.0,105.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,120.0,250.0,250.0,250.0,250.0,250.0,250.0,250.0,250.0,250.0,250.0,250.0,250.0,275.0,275.0,275.0,275.0,275.0,275.0],"label":"HK Market ADT (HKD bn/day)","unit":"HKDbn"},"ipo":{"dates":["2000-06-01","2001-06-01","2002-06-01","2003-06-01","2004-06-01","2005-06-01","2006-06-01","2007-06-01","2008-06-01","2009-06-01","2010-06-01","2011-06-01","2012-06-01","2013-06-01","2014-06-01","2015-06-01","2016-06-01","2017-06-01","2018-06-01","2019-06-01","2020-06-01","2021-06-01","2022-06-01","2023-06-01","2024-06-01","2025-06-01","2026-06-01"],"values":[130.0,25.0,30.0,35.0,90.0,195.0,335.0,276.0,65.0,245.0,449.0,261.0,88.0,168.0,228.0,262.0,195.0,128.0,286.0,314.0,397.0,334.0,104.0,46.0,87.0,80.0,120.0],"label":"HK IPO Proceeds (HKD bn/yr)","unit":"HKDbn"},"pe":{"dates":["2000-06-01","2000-07-01","2000-08-01","2000-09-01","2000-10-01","2000-11-01","2000-12-01","2001-01-01","2001-02-01","2001-03-01","2001-04-01","2001-05-01","2001-06-01","2001-07-01","2001-08-01","2001-09-01","2001-10-01","2001-11-01","2001-12-01","2002-01-01","2002-02-01","2002-03-01","2002-04-01","2002-05-01","2002-06-01","2002-07-01","2002-08-01","2002-09-01","2002-10-01","2002-11-01","2002-12-01","2003-01-01","2003-02-01","2003-03-01","2003-04-01","2003-05-01","2003-06-01","2003-07-01","2003-08-01","2003-09-01","2003-10-01","2003-11-01","2003-12-01","2004-01-01","2004-02-01","2004-03-01","2004-04-01","2004-05-01","2004-06-01","2004-07-01","2004-08-01","2004-09-01","2004-10-01","2004-11-01","2004-12-01","2005-01-01","2005-02-01","2005-03-01","2005-04-01","2005-05-01","2005-06-01","2005-07-01","2005-08-01","2005-09-01","2005-10-01","2005-11-01","2005-12-01","2006-01-01","2006-02-01","2006-03-01","2006-04-01","2006-05-01","2006-06-01","2006-07-01","2006-08-01","2006-09-01","2006-10-01","2006-11-01","2006-12-01","2007-01-01","2007-02-01","2007-03-01","2007-04-01","2007-05-01","2007-06-01","2007-07-01","2007-08-01","2007-09-01","2007-10-01","2007-11-01","2007-12-01","2008-01-01","2008-02-01","2008-03-01","2008-04-01","2008-05-01","2008-06-01","2008-07-01","2008-08-01","2008-09-01","2008-10-01","2008-11-01","2008-12-01","2009-01-01","2009-02-01","2009-03-01","2009-04-01","2009-05-01","2009-06-01","2009-07-01","2009-08-01","2009-09-01","2009-10-01","2009-11-01","2009-12-01","2010-01-01","2010-02-01","2010-03-01","2010-04-01","2010-05-01","2010-06-01","2010-07-01","2010-08-01","2010-09-01","2010-10-01","2010-11-01","2010-12-01","2011-01-01","2011-02-01","2011-03-01","2011-04-01","2011-05-01","2011-06-01","2011-07-01","2011-08-01","2011-09-01","2011-10-01","2011-11-01","2011-12-01","2012-01-01","2012-02-01","2012-03-01","2012-04-01","2012-05-01","2012-06-01","2012-07-01","2012-08-01","2012-09-01","2012-10-01","2012-11-01","2012-12-01","2013-01-01","2013-02-01","2013-03-01","2013-04-01","2013-05-01","2013-06-01","2013-07-01","2013-08-01","2013-09-01","2013-10-01","2013-11-01","2013-12-01","2014-01-01","2014-02-01","2014-03-01","2014-04-01","2014-05-01","2014-06-01","2014-07-01","2014-08-01","2014-09-01","2014-10-01","2014-11-01","2014-12-01","2015-01-01","2015-02-01","2015-03-01","2015-04-01","2015-05-01","2015-06-01","2015-07-01","2015-08-01","2015-09-01","2015-10-01","2015-11-01","2015-12-01","2016-01-01","2016-02-01","2016-03-01","2016-04-01","2016-05-01","2016-06-01","2016-07-01","2016-08-01","2016-09-01","2016-10-01","2016-11-01","2016-12-01","2017-01-01","2017-02-01","2017-03-01","2017-04-01","2017-05-01","2017-06-01","2017-07-01","2017-08-01","2017-09-01","2017-10-01","2017-11-01","2017-12-01","2018-01-01","2018-02-01","2018-03-01","2018-04-01","2018-05-01","2018-06-01","2018-07-01","2018-08-01","2018-09-01","2018-10-01","2018-11-01","2018-12-01","2019-01-01","2019-02-01","2019-03-01","2019-04-01","2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01","2019-12-01","2020-01-01","2020-02-01","2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01","2020-11-01","2020-12-01","2021-01-01","2021-02-01","2021-03-01","2021-04-01","2021-05-01","2021-06-01","2021-07-01","2021-08-01","2021-09-01","2021-10-01","2021-11-01","2021-12-01","2022-01-01","2022-02-01","2022-03-01","2022-04-01","2022-05-01","2022-06-01","2022-07-01","2022-08-01","2022-09-01","2022-10-01","2022-11-01","2022-12-01","2023-01-01","2023-02-01","2023-03-01","2023-04-01","2023-05-01","2023-06-01","2023-07-01","2023-08-01","2023-09-01","2023-10-01","2023-11-01","2023-12-01","2024-01-01","2024-02-01","2024-03-01","2024-04-01","2024-05-01","2024-06-01","2024-07-01","2024-08-01","2024-09-01","2024-10-01","2024-11-01","2024-12-01","2025-01-01","2025-02-01","2025-03-01","2025-04-01","2025-05-01","2025-06-01","2025-07-01","2025-08-01","2025-09-01","2025-10-01","2025-11-01","2025-12-01","2026-01-01","2026-02-01","2026-03-01","2026-04-01","2026-05-01","2026-06-01"],"values":[4.7,7.6,7.7,7.8,7.2,9.1,10.4,11.7,10.7,8.6,10.4,11.2,11.9,9.7,8.1,7.6,8.4,8.8,9.1,8.6,8.2,8.9,10.3,10.2,9.2,7.9,7.1,6.4,7.0,6.9,6.4,5.9,5.7,5.2,5.8,6.5,7.0,7.7,8.2,9.4,9.4,8.6,8.8,9.9,10.2,9.0,8.2,8.3,8.1,7.8,8.0,8.3,8.1,8.7,9.0,8.2,8.2,8.1,7.6,7.4,7.7,8.9,8.4,9.2,8.6,9.0,9.9,11.3,11.5,13.1,15.4,14.0,13.0,12.3,12.2,12.6,12.9,13.7,16.3,15.4,14.0,12.7,12.3,13.7,16.7,19.9,22.3,38.1,41.6,39.0,37.1,27.5,26.3,23.6,29.4,25.1,21.7,22.0,19.7,17.8,14.4,11.5,13.8,12.6,11.5,13.4,16.7,22.0,22.0,26.3,24.2,24.7,24.2,23.6,23.4,21.9,21.2,20.8,20.8,19.0,19.2,19.9,19.1,23.8,26.5,27.4,27.0,27.3,25.5,25.5,26.9,26.3,24.5,24.3,22.5,17.9,21.1,19.4,19.8,21.6,23.4,21.3,20.8,18.5,18.7,17.5,17.3,19.4,20.9,20.0,21.0,23.1,21.6,20.3,20.0,19.8,17.5,17.8,17.7,18.4,18.3,19.8,18.6,17.4,17.1,16.5,19.7,20.2,20.1,23.4,23.6,21.5,21.5,20.6,20.4,20.7,20.2,21.0,32.1,31.8,28.5,22.2,19.9,19.6,23.0,23.1,23.1,20.2,20.3,22.9,24.5,23.9,24.6,24.8,24.5,26.0,25.9,25.4,22.6,23.0,23.2,23.3,22.8,23.1,23.5,25.7,24.7,24.1,24.7,26.6,26.9,32.9,31.3,27.9,28.2,27.6,25.5,25.0,24.5,24.5,22.7,24.9,24.7,26.6,29.4,30.0,29.8,27.3,30.2,28.9,26.4,25.2,26.7,26.8,27.3,27.8,27.4,25.2,27.0,28.9,35.1,38.9,40.5,37.4,37.8,38.9,42.9,49.0,46.1,44.5,45.2,46.2,43.5,47.2,47.7,47.2,46.9,43.4,46.6,45.6,39.7,40.0,36.9,37.5,43.3,39.7,35.0,29.3,22.4,32.3,35.1,36.2,31.9,35.2,32.4,28.3,28.7,31.5,29.6,28.2,26.3,26.3,25.2,22.1,22.5,21.3,23.3,24.2,22.9,20.6,20.7,27.8,25.8,23.4,23.3,23.3,26.2,25.6,24.7,28.1,29.0,29.6,31.3,31.1,29.8,28.9,28.7,30.4,29.4,27.7,29.4,28.5,25.9],"label":"HKEX Trailing P/E (x)","unit":"x"}},"ipo_annual":{"2000":130.0,"2001":25.0,"2002":30.0,"2003":35.0,"2004":90.0,"2005":195.0,"2006":335.0,"2007":276.0,"2008":65.0,"2009":245.0,"2010":449.0,"2011":261.0,"2012":88.0,"2013":168.0,"2014":228.0,"2015":262.0,"2016":195.0,"2017":128.0,"2018":286.0,"2019":314.0,"2020":397.0,"2021":334.0,"2022":104.0,"2023":46.0,"2024":87.0,"2025":80.0,"2026":120.0},"eps_annual":{"2000":0.95,"2001":0.5,"2002":0.62,"2003":0.75,"2004":1.05,"2005":1.45,"2006":2.2,"2007":3.9,"2008":3.2,"2009":3.5,"2010":4.2,"2011":4.5,"2012":4.1,"2013":4.8,"2014":5.3,"2015":7.2,"2016":5.9,"2017":6.8,"2018":7.5,"2019":7.61,"2020":8.05,"2021":9.28,"2022":7.95,"2023":9.36,"2024":10.29,"2025":14.01}};
+const M = D.model_constants;
+const CURRENT_PRICE  = D.meta.current_price;
+const ANALYST_TARGET = D.meta.analyst_target_mean;
+const FWD_EPS        = D.meta.fwd_eps;
+const PE_LOW         = M.PE_LOW;
+const PE_HIGH        = M.PE_HIGH;
+
+// ── CALCULATION ──────────────────────────────────────────────
+function calc(adt, hibor, ipo, pe) {
+  const trading  = adt   * M.TRADING_K;
+  const nii      = hibor * M.NII_K;
+  const listing  = M.IPO_BASE + ipo * M.IPO_K;
+  const total    = trading + nii + listing + M.DATA_REV + M.OTHER_REV;
+  const profit   = total - M.OPEX;
+  const eps      = profit / M.SHARES_MN;
+  const margin   = profit / total * 100;
+  return {
+    trading, nii, listing, total, profit, eps, margin,
+    priceFair:  eps * pe,
+    priceLow:   eps * PE_LOW,
+    priceHigh:  eps * PE_HIGH,
+  };
+}
+
+// ── SYNC ─────────────────────────────────────────────────────
+function syncNum(k) {
+  document.getElementById("in-" + k).value = document.getElementById("sl-" + k).value;
+  update();
+}
+function syncSlider(k) {
+  document.getElementById("sl-" + k).value = document.getElementById("in-" + k).value;
+  update();
+}
+function getVal(k) { return parseFloat(document.getElementById("in-" + k).value) || 0; }
+
+function fmt(v, dp=0) {
+  return v == null ? "--" : v.toLocaleString("en-HK", {minimumFractionDigits:dp, maximumFractionDigits:dp});
+}
+function upd(price, ref) { return (price / ref - 1) * 100; }
+function pctStr(v) { return (v > 0 ? "+" : "") + fmt(v, 1) + "%"; }
+
+// ── MAIN UPDATE ───────────────────────────────────────────────
+function update() {
+  const adt   = getVal("adt");
+  const hibor = getVal("hibor");
+  const ipo   = getVal("ipo");
+  const pe    = getVal("pe");
+  const r     = calc(adt, hibor, ipo, pe);
+
+  document.getElementById("rv-trading").textContent = fmt(r.trading);
+  document.getElementById("rv-nii").textContent     = fmt(r.nii);
+  document.getElementById("rv-listing").textContent = fmt(r.listing);
+  document.getElementById("rv-total").textContent   = fmt(r.total);
+  document.getElementById("rv-profit").textContent  = fmt(r.profit);
+  document.getElementById("rv-eps").textContent     = "HKD " + fmt(r.eps, 2);
+  document.getElementById("rv-margin").textContent  = fmt(r.margin, 1) + "% margin";
+
+  // Revenue % breakdown column
+  const p = (v) => (v / r.total * 100).toFixed(1) + "%";
+  document.getElementById("rv-trading-pct").textContent = p(r.trading);
+  document.getElementById("rv-nii-pct").textContent     = p(r.nii);
+  document.getElementById("rv-listing-pct").textContent = p(r.listing);
+  document.getElementById("rv-data-pct").textContent    = p(M.DATA_REV);
+  document.getElementById("rv-other-pct").textContent   = p(M.OTHER_REV);
+  document.getElementById("rv-opex-pct").textContent    = "(" + p(M.OPEX) + ")";
+
+  // EPS vs analyst % diff
+  const epsDiff = (r.eps / FWD_EPS - 1) * 100;
+  const epsEl = document.getElementById("rv-eps-pct");
+  epsEl.textContent = (epsDiff >= 0 ? "+" : "") + epsDiff.toFixed(1) + "% vs analyst";
+  epsEl.className   = epsDiff >= 0 ? "pct-pos" : "pct-neg";
+
+  document.getElementById("pe-label-mid").textContent = fmt(pe, 1);
+  document.getElementById("val-subtitle").textContent  = "EPS  HKD " + fmt(r.eps, 2) + "  ×  P/E Band";
+
+  document.getElementById("v-low").textContent  = "HKD " + fmt(r.priceLow);
+  document.getElementById("v-fair").textContent = "HKD " + fmt(r.priceFair);
+  document.getElementById("v-high").textContent = "HKD " + fmt(r.priceHigh);
+  document.getElementById("v-low-ud").textContent  = pctStr(upd(r.priceLow,  CURRENT_PRICE)) + " vs now";
+  document.getElementById("v-fair-ud").textContent = pctStr(upd(r.priceFair, CURRENT_PRICE)) + " vs now";
+  document.getElementById("v-high-ud").textContent = pctStr(upd(r.priceHigh, CURRENT_PRICE)) + " vs now";
+
+  // Range bar — extend right edge to include analyst target
+  const lo = r.priceLow * 0.85, hi = Math.max(r.priceHigh, ANALYST_TARGET) * 1.08;
+  const span = hi - lo;
+  const pos = (v) => Math.max(1, Math.min(99, (v - lo) / span * 100)) + "%";
+  document.getElementById("rng-lo").textContent = "HKD " + fmt(r.priceLow);
+  document.getElementById("rng-hi").textContent = "HKD " + fmt(Math.max(r.priceHigh, ANALYST_TARGET));
+  document.getElementById("mk-current").style.left = pos(CURRENT_PRICE);
+  document.getElementById("mk-fair").style.left    = pos(r.priceFair);
+  document.getElementById("mk-target").style.left  = pos(ANALYST_TARGET);
+
+  // Status
+  const du = upd(r.priceFair, CURRENT_PRICE);
+  const banner = document.getElementById("status-banner");
+  let cls, txt;
+  if (r.priceFair > CURRENT_PRICE * 1.10) {
+    cls="underval"; txt="UNDERVALUED vs Fair — current price below fair value on these inputs";
+  } else if (r.priceFair < CURRENT_PRICE * 0.90) {
+    cls="overval";  txt="OVERVALUED vs Fair — current price above fair value on these inputs";
+  } else {
+    cls="fairval";  txt="NEAR FAIR VALUE — current price in line with model output";
+  }
+  banner.className = "status-banner " + cls;
+  document.getElementById("status-text").textContent   = txt;
+  document.getElementById("status-updown").textContent = "Fair: HKD " + fmt(r.priceFair) + " (" + pctStr(du) + " vs current)";
+
+  if (currentChart === "price" && mainChart) updatePriceBands(r);
+}
+
+// ── CHARTS ───────────────────────────────────────────────────
+let mainChart    = null;
+let currentChart = "price";
+
+const CHART_META = {
+  price: {
+    color:"#1A2E4A", fill:"rgba(26,46,74,0.06)", type:"line", tension:0.3,
+    label:"0388.HK Close (HKD)", yLabel:"HKD",
+    desc:"HKEX (0388.HK) monthly closing price since listing (Jun 2000). Dashed lines = current model valuation bands (Bear/Fair/Bull) and analyst target — update in real time as you adjust sliders.",
+  },
+  adt: {
+    color:"#1976D2", fill:"rgba(25,118,210,0.07)", type:"line", tension:0.4,
+    label:"ADT (HKD bn/day)", yLabel:"HKD bn/day",
+    desc:"HK market Average Daily Turnover (ADT) in HKD billions. 2022–2025 from HKEX annual statistics; 2026 is user estimate. Dashed red line = your current slider input.",
+  },
+  hibor: {
+    color:"#D32F2F", fill:"rgba(211,47,47,0.06)", type:"line", tension:0.3,
+    label:"3M HIBOR / Funding Rate (%)", yLabel:"%",
+    desc:"3-month HIBOR proxied from US Fed Funds rate −40bps (HKD peg). Source: FRED. Dashed red line = your current slider input.",
+  },
+  ipo: {
+    color:"#7B1FA2", fill:"rgba(123,31,162,0.08)", type:"bar", tension:0,
+    label:"IPO Proceeds (HKD bn/yr)", yLabel:"HKD bn",
+    desc:"Total IPO funds raised on HKEX each year (HKD bn). Source: HKEX annual statistics. 2026 is an estimate.",
+  },
+  pe: {
+    color:"#F57C00", fill:"rgba(245,124,0,0.07)", type:"line", tension:0.3,
+    label:"HKEX Trailing P/E (x)", yLabel:"P/E (x)",
+    desc:"HKEX (0388.HK) trailing P/E: monthly close ÷ interpolated annual EPS. Dashed lines = Bear (24x) and Bull (35x) historical P/E bands. Source: HKEX annual reports.",
+  },
+};
+
+function buildChart(key) {
+  const cfg = CHART_META[key];
+  const s   = D.series[key];
+  const ctx = document.getElementById("mainChart").getContext("2d");
+  if (mainChart) { mainChart.destroy(); mainChart = null; }
+
+  const base = {
+    label: cfg.label, data: s.values,
+    borderColor: cfg.color, backgroundColor: cfg.fill,
+    borderWidth: 2, pointRadius: 0, pointHoverRadius: 4,
+    fill: cfg.type !== "bar", tension: cfg.tension,
+  };
+  const datasets = [base];
+
+  if (key === "price") {
+    const r  = calc(getVal("adt"), getVal("hibor"), getVal("ipo"), getVal("pe"));
+    const n  = s.dates.length;
+    const fl = (v) => Array(n).fill(v);
+    datasets.push({ label:"Bear P/E (24x)",     data:fl(r.priceLow),    borderColor:"rgba(211,47,47,0.55)",  borderDash:[5,3], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
+    datasets.push({ label:"Fair P/E (model)",             data:fl(r.priceFair),   borderColor:"#1A2E4A",               borderDash:[7,3], borderWidth:2,   pointRadius:0, fill:false, tension:0 });
+    datasets.push({ label:"Bull P/E (35x)",    data:fl(r.priceHigh),   borderColor:"rgba(46,125,50,0.55)",  borderDash:[5,3], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
+    datasets.push({ label:"Analyst HKD 518",        data:fl(ANALYST_TARGET),borderColor:"#f39c12",               borderDash:[9,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
+  }
+  if (key === "pe") {
+    const n = s.dates.length;
+    datasets.push({ label:"Bear 24x", data:Array(n).fill(PE_LOW),  borderColor:"rgba(211,47,47,0.5)", borderDash:[5,3], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
+    datasets.push({ label:"Bull 35x",data:Array(n).fill(PE_HIGH), borderColor:"rgba(46,125,50,0.5)", borderDash:[5,3], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
+  }
+  if (key === "adt") {
+    const n = s.dates.length;
+    datasets.push({ label:"Your Forecast", data:Array(n).fill(getVal("adt")), borderColor:"#E8000D", borderDash:[6,3], borderWidth:2, pointRadius:0, fill:false, tension:0 });
+  }
+  if (key === "hibor") {
+    const n = s.dates.length;
+    datasets.push({ label:"Your Forecast", data:Array(n).fill(getVal("hibor")), borderColor:"#1A2E4A", borderDash:[6,3], borderWidth:2, pointRadius:0, fill:false, tension:0 });
+  }
+
+  mainChart = new Chart(ctx, {
+    type: cfg.type === "bar" ? "bar" : "line",
+    data: { labels: s.dates, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:true, aspectRatio:3, animation:{duration:250},
+      interaction:{ mode:"index", intersect:false },
+      plugins:{
+        legend:{ display:true, position:"top", labels:{ boxWidth:12, font:{size:11} } },
+        tooltip:{ callbacks:{ label:(c) => ` ${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toLocaleString("en-HK",{minimumFractionDigits:1,maximumFractionDigits:1}) : "N/A"}` } },
+      },
+      scales:{
+        x:{
+          type:"category",
+          ticks:{ maxTicksLimit:12, maxRotation:0, font:{size:10},
+                   callback:function(v,i) { const l=this.getLabelForValue(v); return l?l.substring(0,7):""; } },
+          grid:{ display:false },
+        },
+        y:{
+          title:{ display:true, text:cfg.yLabel, font:{size:10} },
+          ticks:{ font:{size:10}, callback:(v)=>v.toLocaleString() },
+          grid:{ color:"rgba(0,0,0,0.04)" },
+        },
+      },
+    },
+  });
+  document.getElementById("chart-desc").textContent = cfg.desc;
+}
+
+function updatePriceBands(r) {
+  if (!mainChart || currentChart !== "price") return;
+  const n = mainChart.data.labels.length;
+  if (mainChart.data.datasets.length >= 5) {
+    mainChart.data.datasets[1].data = Array(n).fill(r.priceLow);
+    mainChart.data.datasets[2].data = Array(n).fill(r.priceFair);
+    mainChart.data.datasets[3].data = Array(n).fill(r.priceHigh);
+    mainChart.update("none");
+  }
+}
+
+function showChart(key, el) {
+  currentChart = key;
+  document.querySelectorAll(".chart-tab").forEach(b => b.classList.remove("active"));
+  const t = document.getElementById("tab-" + key);
+  if (t) t.classList.add("active");
+  buildChart(key);
+}
+
+update();
+showChart("price");
+</script>
+</body>
+</html>

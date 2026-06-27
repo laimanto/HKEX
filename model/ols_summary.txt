@@ -1,0 +1,16 @@
+388.HK OLS Model -- Quick Results
+===================================
+Target  : D_ln_0388 (weekly log-return of 0388.HK, period t)
+Features: all lagged 1 week (t-1) for causal ordering
+
+Full period (2015-2026): R2=0.0186  Adj-R2=0.0137  N=597
+Era 1  Low-Rate (15-22): R2=0.0319  Adj-R2=0.0240  N=372
+Era 2 High-Rate (22-26): R2=0.0148  Adj-R2=0.0014  N=225
+Tech era (Dec20-2026)  : R2=0.0148  Adj-R2=0.0009  N=290
+
+Data gaps (require manual sourcing):
+  - Southbound Net Inflow: HKEX Daily Market Report / Futu OpenAPI
+  - IPO rolling amount   : HKEXnews Monthly Market Highlights
+  Expected R2 improvement: +5-15pp when these are added
+
+Output files saved to model/ and data/ folders.
