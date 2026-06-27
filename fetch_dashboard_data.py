@@ -82,7 +82,7 @@ ADT_FALLBACK = {
     2010: 60.0, 2011: 62.0, 2012: 54.0, 2013: 57.0, 2014: 65.0,
     2015:107.0, 2016: 68.0, 2017: 85.0, 2018:103.0, 2019: 88.0,
     2020:107.0, 2021:167.0, 2022:105.0, 2023: 90.0, 2024:120.0,
-    2025:250.0, 2026:275.0,
+    2025:249.8, 2026:275.0,
 }
 
 def try_fetch_hkex_adt():
@@ -176,70 +176,23 @@ def try_fetch_hkex_adt():
     return {}
 
 web_adt = try_fetch_hkex_adt()
-adt_monthly_series = None   # will hold a pd.Series if we get real monthly data
-
+ADT_ANNUAL = dict(ADT_FALLBACK)
 if web_adt:
-    ADT_ANNUAL = {**ADT_FALLBACK, **web_adt}
-    ADT_ANNUAL[2026] = ADT_FALLBACK[2026]
-    print(f"   Merged HKEX live data ({len(web_adt)} years) with fallback table")
+    for yr, val in web_adt.items():
+        if yr <= 2024:          # keep confirmed 2025 result and 2026 estimate locked
+            ADT_ANNUAL[yr] = val
+    print(f"   HKEX web: updated {sum(1 for y in web_adt if y <= 2024)} historical years")
 else:
-    # Fallback: try 2800.HK (Tracker Fund) as market ADT proxy via yfinance
-    print("   HKEX direct download failed — trying 2800.HK (Tracker Fund) as ADT proxy...")
-    try:
-        d2800 = yf.download("2800.HK", start="2000-01-01", auto_adjust=True, progress=False)
-        if isinstance(d2800.columns, pd.MultiIndex):
-            d2800.columns = d2800.columns.get_level_values(0)
-        if len(d2800) >= 500:
-            # Daily turnover: Price (HKD) × Volume (shares) → HKD, convert to bn
-            d2800["turnover_bn"] = d2800["Close"] * d2800["Volume"] / 1e8
-            monthly_2800 = d2800["turnover_bn"].resample("MS").mean().dropna()
+    print("   Using compiled ADT table (HKEX annual reports + confirmed 2025 result)")
 
-            # Calibrate using known 2024 actual market ADT = 120bn/day
-            mask_2024 = (monthly_2800.index.year == 2024)
-            if mask_2024.sum() >= 6:
-                avg_2024 = float(monthly_2800[mask_2024].mean())
-                scale    = 120.0 / avg_2024 if avg_2024 > 0 else 1.0
-                scaled   = (monthly_2800 * scale).round(1)
-                print(f"   2800.HK 2024 avg {avg_2024:.3f}bn → scale {scale:.1f}x → calibrated to 120bn/day")
+# Annual series for bar chart — year strings as labels
+adt_years = sorted(ADT_ANNUAL.keys())
+adt_dates = [str(y) for y in adt_years]
+adt_vals  = [round(float(ADT_ANNUAL[y]), 1) for y in adt_years]
+print(f"   ADT series: {len(adt_years)} annual data points ({adt_years[0]}–{adt_years[-1]})")
 
-                # Anchor known/estimated years to override the proxy
-                for yr, val in ADT_FALLBACK.items():
-                    for m in scaled.index[scaled.index.year == yr]:
-                        scaled[m] = val
-
-                adt_monthly_series = scaled
-                ADT_ANNUAL = ADT_FALLBACK    # still needed for hint labels
-                print(f"   2800.HK proxy: {len(scaled)} monthly data points (calibrated)")
-            else:
-                print("   2800.HK: insufficient 2024 data for calibration")
-                ADT_ANNUAL = ADT_FALLBACK
-        else:
-            print(f"   2800.HK: only {len(d2800)} rows returned — too few")
-            ADT_ANNUAL = ADT_FALLBACK
-    except Exception as e2800:
-        print(f"   2800.HK proxy failed: {e2800}")
-        ADT_ANNUAL = ADT_FALLBACK
-
-if adt_monthly_series is None and not web_adt:
-    print("   Using compiled fallback ADT table (HKEX annual reports)")
-
-# Build monthly ADT series
+# Date grid needed for EPS/P/E interpolation below
 all_months = pd.date_range(start="2000-01-01", end=pd.Timestamp.today(), freq="MS")
-
-if adt_monthly_series is not None:
-    # Real monthly data from 2800.HK proxy — reindex to standard grid
-    adt_m = adt_monthly_series.reindex(all_months, method="nearest").dropna()
-    print(f"   ADT series: {len(adt_m)} monthly obs (2800.HK proxy, calibrated)")
-else:
-    # Linear interpolation of annual fallback
-    adt_rows = []
-    for yr, val in sorted(ADT_ANNUAL.items()):
-        adt_rows.append({"date": pd.Timestamp(f"{yr}-01-01"), "adt": val})
-    adt_annual = pd.DataFrame(adt_rows).set_index("date")["adt"]
-    adt_m = adt_annual.reindex(all_months, method=None).interpolate(method="time")
-    print(f"   ADT series: {len(adt_m)} monthly obs (interpolated from annual fallback)")
-
-adt_dates, adt_vals = series_to_js(adt_m, 1)
 
 # ── 4. ANNUAL IPO PROCEEDS ──────────────────────────────────
 print("\n[4] Loading annual IPO data...")

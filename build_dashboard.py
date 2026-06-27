@@ -230,6 +230,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   <div class="hdr-price">
     <div class="big">HKD {cp:.0f}</div>
     <div class="sub">Latest close: {cd}</div>
+    <div class="sub" style="color:#7abaff;margin-top:3px;font-size:10px">Auto-updated monthly (1st) &nbsp;·&nbsp; Last refresh: {meta['generated']}</div>
   </div>
   <div class="hdr-meta">
     <div>{n_anal} analysts &nbsp;|&nbsp; Target: <strong>HKD {tgt:.0f}</strong> ({tgt_lo:.0f}–{tgt_hi:.0f})</div>
@@ -258,7 +259,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
         <span class="unit">bn</span>
       </div>
       <div class="ig-hints">
-        <span>2024A: ~120bn &nbsp;|&nbsp; 2025A: ~250bn</span>
+        <span>2024A: 120bn &nbsp;|&nbsp; 2025A: 249.8bn</span>
         <span>2026E: <strong>{pf['adt']:.0f}bn</strong></span>
       </div>
     </div>
@@ -480,7 +481,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
       <div class="card-title">Model Notes</div>
       <div class="model-note">
         <p><strong>Range logic:</strong> Low / Fair / High use the <em>same model EPS</em> from inputs A–C, multiplied by historical P/E trough ({pe_low:.0f}x), user-selected P/E, and peak ({pe_high:.0f}x). Revenue risk is captured by moving sliders; the range purely reflects market re-rating risk.</p>
-        <p style="margin-top:8px"><strong>ADT surge 2025:</strong> 250bn/day vs 120bn in 2024 reflects the China stimulus + AI rally. TRADING_K recalibrated to 47.2 (= 11,800mn ÷ 250bn) vs 88 in earlier years — fee mix shifted.</p>
+        <p style="margin-top:8px"><strong>ADT surge 2025:</strong> 249.8bn/day vs 120bn in 2024 reflects the China stimulus + AI rally. TRADING_K recalibrated to 47.2 (= 11,800mn ÷ 249.8bn) vs 88 in earlier years — fee mix shifted.</p>
         <p style="margin-top:8px"><strong>Fixed OpEx ~HKD 9bn/year</strong> (staff, IT, LME). All incremental NII and trading revenue flow almost entirely to EPS — this is why net margin rose from 54% (2022) to ~71% (2025) as volumes and rates surged.</p>
         <p style="margin-top:8px;font-size:11px;color:#bbb">Generated: {meta['generated']} · yfinance, FRED, HKEX annual reports</p>
       </div>
@@ -632,9 +633,9 @@ const CHART_META = {{
     desc:"HKEX (0388.HK) monthly closing price since listing (Jun 2000). Dashed lines = current model valuation bands (Bear/Fair/Bull) and analyst target — update in real time as you adjust sliders.",
   }},
   adt: {{
-    color:"#1976D2", fill:"rgba(25,118,210,0.07)", type:"line", tension:0.4,
+    color:"#1976D2", fill:"rgba(25,118,210,0.8)", type:"bar", tension:0,
     label:"ADT (HKD bn/day)", yLabel:"HKD bn/day",
-    desc:"HK market Average Daily Turnover (ADT) in HKD billions. 2022–2025 from HKEX annual statistics; 2026 is user estimate. Dashed red line = your current slider input.",
+    desc:"HK market Average Daily Turnover (ADT) by year (HKD bn/day). Source: HKEX annual results & reports. 2025A = 249.8bn (confirmed). 2026 = Jan–May YTD estimate (lighter bar).",
   }},
   hibor: {{
     color:"#D32F2F", fill:"rgba(211,47,47,0.06)", type:"line", tension:0.3,
@@ -682,8 +683,9 @@ function buildChart(key) {{
     datasets.push({{ label:"Bull {pe_high:.0f}x",data:Array(n).fill(PE_HIGH), borderColor:"rgba(46,125,50,0.5)", borderDash:[5,3], borderWidth:1.5, pointRadius:0, fill:false, tension:0 }});
   }}
   if (key === "adt") {{
-    const n = s.dates.length;
-    datasets.push({{ label:"Your Forecast", data:Array(n).fill(getVal("adt")), borderColor:"#E8000D", borderDash:[6,3], borderWidth:2, pointRadius:0, fill:false, tension:0 }});
+    base.backgroundColor = s.dates.map(yr => yr === "2026" ? "rgba(25,118,210,0.3)" : "rgba(25,118,210,0.8)");
+    base.borderColor     = s.dates.map(yr => yr === "2026" ? "#1976D2" : "transparent");
+    base.borderWidth     = 2;
   }}
   if (key === "hibor") {{
     const n = s.dates.length;
@@ -703,7 +705,7 @@ function buildChart(key) {{
       scales:{{
         x:{{
           type:"category",
-          ticks:{{ maxTicksLimit:12, maxRotation:0, font:{{size:10}},
+          ticks:{{ maxTicksLimit: key==="adt"?30:12, maxRotation: key==="adt"?45:0, font:{{size:10}},
                    callback:function(v,i) {{ const l=this.getLabelForValue(v); return l?l.substring(0,7):""; }} }},
           grid:{{ display:false }},
         }},
