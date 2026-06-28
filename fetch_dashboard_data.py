@@ -37,8 +37,9 @@ if isinstance(raw.columns, pd.MultiIndex):
     raw.columns = raw.columns.get_level_values(0)
 price_m = to_monthly(raw, "Close")
 price_dates, price_vals = series_to_js(price_m, 1)
-current_price = price_vals[-1]
-current_date  = price_dates[-1]
+_last = raw["Close"].dropna()
+current_price = round(float(_last.iloc[-1]), 1)
+current_date  = _last.index[-1].strftime("%Y-%m-%d")
 print(f"   {len(price_m)} monthly obs  |  latest: {current_date} = HKD {current_price}")
 
 # ── 2. HIBOR (3-month) from FRED ────────────────────────────
