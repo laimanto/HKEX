@@ -1,16 +1,16 @@
 {
   "meta": {
-    "generated": "2026-06-27 20:57",
-    "current_price": 362.2,
-    "current_date": "2026-06-26",
-    "ttm_eps": 14.89,
+    "generated": "2026-07-01 17:53",
+    "current_price": 363.0,
+    "current_date": "2026-06-30",
+    "ttm_eps": 14.88,
     "fwd_eps": 15.62897,
     "analyst_target_mean": 518.4706,
     "analyst_target_high": 610.0,
     "analyst_target_low": 400.0,
     "analyst_n": 17,
-    "trailing_pe_live": 24.32505,
-    "consensus_hibor": 3.38
+    "trailing_pe_live": 24.39516,
+    "consensus_hibor": 3.4
   },
   "model_constants": {
     "TRADING_K": 47.2,
@@ -33,16 +33,16 @@
   },
   "futures": {
     "Jul 2026": {
-      "ff": 3.64,
-      "hibor": 3.24
+      "ff": 3.63,
+      "hibor": 3.23
     },
     "Sep 2026": {
-      "ff": 3.75,
-      "hibor": 3.35
+      "ff": 3.76,
+      "hibor": 3.36
     },
     "Dec 2026": {
-      "ff": 3.92,
-      "hibor": 3.52
+      "ff": 3.96,
+      "hibor": 3.56
     }
   },
   "series": {
@@ -675,7 +675,7 @@
         388.6,
         412.4,
         399.8,
-        362.2
+        363.0
       ],
       "label": "0388.HK Close (HKD)",
       "unit": "HKD"

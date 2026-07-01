@@ -1,0 +1,38 @@
+﻿2026-07-01 17:52:58  START monthly update
+============================================================
+  HKEX Dashboard Data Fetcher
+============================================================
+
+[1] Downloading 0388.HK price history...
+   313 monthly obs  |  latest: 2026-06-30 = HKD 363.0
+
+[2] Downloading HIBOR from FRED...
+   IR3TIB01HKM156N: FAILED (Missing column provided to 'parse_dates': 'DATE')
+   INTDSGHKM193N: FAILED (Missing column provided to 'parse_dates': 'DATE')
+   Fallback: approximating HIBOR from FEDFUNDS - 0.40%
+   HIBOR series: 863 monthly obs
+
+[3] Downloading HK market daily turnover from HKEX...
+   Using compiled ADT table (HKEX annual reports + confirmed 2025 result)
+   ADT series: 27 annual data points (2000ΓÇô2026)
+
+[4] Loading annual IPO data...
+   IPO data: 27 annual data points (2000-2026)
+
+[5] Computing historical P/E...
+   P/E series: 313 monthly obs  |  range: 4.7x ΓÇô 49.0x
+   Recent P/E percentiles (2015+): 25th=24.5x, median=27.3x, 75th=31.8x
+
+[6] Fetching Fed Funds futures for HIBOR forecast...
+   Futures: {'Jul 2026': {'ff': 3.63, 'hibor': 3.23}, 'Sep 2026': {'ff': 3.76, 'hibor': 3.36}, 'Dec 2026': {'ff': 3.96, 'hibor': 3.56}}
+
+[7] Fetching analyst data from yfinance...
+   TTM EPS=14.88  Fwd EPS=15.62897  Target=518.4706
+   Analysts: 17  |  Target range: 400.0-610.0
+   Model prefill: ADT=275.0bn  HIBOR=3.5%  IPO=120.0bn  P/E=27.0x (median)
+
+[8] Saving dashboard_data.json...
+   Saved: D:\Backup D\Weekly\USB drive\Invest\AI invest\388\data\dashboard_data.json  (59KB)
+
+Done. Run build_dashboard.py next to generate HTML.
+Generated: D:\Backup D\Weekly\USB drive\Invest\AI invest\388\dashboard_0388.html  (53 KB)
